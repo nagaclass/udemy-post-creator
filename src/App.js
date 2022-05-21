@@ -1,8 +1,8 @@
 import { useState, useId } from "react";
-import FormInput from "./components/FormInput";
-import FormInputErrorMsg from "./components/FormInputErrorMsg";
-import FormSubmitBtn from "./components/FormSubmitBtn";
-import Post from "./components/Post";
+import FormInput from "components/FormInput";
+import FormInputErrorMsg from "components/FormInputErrorMsg";
+import FormSubmitBtn from "components/FormSubmitBtn";
+import Post from "components/Post";
 
 function App() {
   const id = useId();
