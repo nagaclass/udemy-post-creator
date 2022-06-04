@@ -1,11 +1,12 @@
-import { useState, useId } from "react";
+import { useState } from "react";
 import FormInput from "components/FormInput";
 import FormInputErrorMsg from "components/FormInputErrorMsg";
 import FormSubmitBtn from "components/FormSubmitBtn";
 import Post from "components/Post";
+import { postDataValidation } from "validation/postValidation";
+import { formInputs } from "utils/formInputs";
 
 function App() {
-  const id = useId();
   const [postList, setPostList] = useState([]);
   const [post, setPost] = useState({
     title: "",
@@ -14,40 +15,8 @@ function App() {
     creator: "",
     email: "",
   });
-
-  const [errors, setErrors] = useState({
-    title: "",
-    description: "",
-    image: "",
-    creator: "",
-    email: "",
-  });
-
-  // ** Form Validation
-  const postDataValidation = values => {
-    const errors = {};
-
-    if (!values.title.trim() || values.title.length < 10) {
-      errors.title = "Post title must be between 10 and 30 characters!";
-    }
-    if (!values.description.trim() || values.title.length < 10) {
-      errors.description = "Post description must be between 10 and 150 characters!";
-    }
-    if (!values.image.trim()) {
-      errors.image = "Image URL is required";
-    }
-    if (!values.creator.trim()) {
-      errors.creator = "Author's name is required";
-    }
-
-    if (!values.email.trim()) {
-      errors.email = "Author's email is required!";
-    } else if (!/\S+@\S+\.\S+/.test(values.email)) {
-      errors.email = "Email address is invalid";
-    }
-
-    return errors;
-  };
+  const [errors, setErrors] = useState({ ...post });
+  const [isError, setIsError] = useState(false);
 
   const changeHandler = e => {
     const {
@@ -55,13 +24,16 @@ function App() {
     } = e;
     setPost({ ...post, [name]: value });
     setErrors({ ...errors, [name]: "" });
+    if (!Object.keys(postDataValidation(post)).length) {
+      setIsError(false);
+    }
   };
 
   const renderPosts = () => {
     return (
       <>
         {postList.map((post, idx) => (
-          <Post key={id + idx} {...post} />
+          <Post key={idx} {...post} />
         ))}
       </>
     );
@@ -72,7 +44,10 @@ function App() {
     e.preventDefault();
 
     setErrors(postDataValidation(post));
-    if (Object.keys(postDataValidation(post)).length) return;
+    if (Object.keys(postDataValidation(post)).length) {
+      setIsError(true);
+      return;
+    }
     setPostList([...postList, post]);
 
     setPost({
@@ -82,6 +57,7 @@ function App() {
       creator: "",
       email: "",
     });
+    setIsError(false);
   };
 
   return (
@@ -101,61 +77,22 @@ function App() {
       </div>
 
       <form className="ml-5 w-2/6" onSubmit={submitHandler} autoComplete="off">
-        <FormInput
-          id="title"
-          label="Title"
-          type="text"
-          name="title"
-          value={post.title}
-          onChange={changeHandler}
-          errors={errors}
-        />
-        <FormInputErrorMsg errors={errors} name="title" />
+        {formInputs.map(({ name, label, type }, idx) => (
+          <div key={idx}>
+            <FormInput
+              id={name}
+              label={label}
+              type={type}
+              name={name}
+              value={post[name]}
+              onChange={changeHandler}
+              errors={errors}
+            />
+            <FormInputErrorMsg errors={errors} name={name} />
+          </div>
+        ))}
 
-        <FormInput
-          id="description"
-          label="Description"
-          type="text"
-          name="description"
-          value={post.description}
-          onChange={changeHandler}
-          errors={errors}
-        />
-        <FormInputErrorMsg errors={errors} name="description" />
-
-        <FormInput
-          id="image"
-          label="Image"
-          type="text"
-          name="image"
-          value={post.image}
-          onChange={changeHandler}
-          errors={errors}
-        />
-        <FormInputErrorMsg errors={errors} name="image" />
-
-        <FormInput
-          id="creator"
-          label="Creator"
-          type="text"
-          name="creator"
-          value={post.creator}
-          onChange={changeHandler}
-          errors={errors}
-        />
-        <FormInputErrorMsg errors={errors} name="creator" />
-
-        <FormInput
-          id="email"
-          label="Email"
-          type="email"
-          name="email"
-          value={post.email}
-          onChange={changeHandler}
-          errors={errors}
-        />
-        <FormInputErrorMsg errors={errors} name="email" />
-        <FormSubmitBtn text="Submit" style={{ backgroundColor: "red" }} />
+        <FormSubmitBtn text="Submit" isError={isError} />
       </form>
     </div>
   );
